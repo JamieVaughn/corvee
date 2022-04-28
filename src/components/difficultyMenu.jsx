@@ -1,36 +1,34 @@
-import { createEffect } from "solid-js";
+import { mergeProps } from "solid-js";
 import styles from './style.module.css'
 
 export const Difficulty = (props) => {
 
   const handleDifficulty = (e) => {
     if (e.target.value) {
+      console.log('c', e.target.value)
       props.setDimension(Number(e.target.value));
+      document.documentElement.style.setProperty(
+        "--grid-columns",
+        String(e.target.value)
+      );
+      document.documentElement.style.setProperty(
+        "--grid-lines",
+        String(e.target.value)
+      );
     }
   };
   const handleStart = (e) => {
     e.preventDefault();
     props.setState(state => {
-      return mergeProps({
+      return {
         state, 
         positionTwo: props.dimension ** 2 - 1,
         matrix: Array(props.dimension ** 2)
         .fill(0)
         .map(() => ({ type: "c", total: 0, player: 1 }))
-      })
+      }
     })
   };
-
-  createEffect(() => {
-    document.documentElement.style.setProperty(
-      "--grid-columns",
-      String(props.dimension)
-    );
-    document.documentElement.style.setProperty(
-      "--grid-lines",
-      String(props.dimension)
-    );
-  });
 
   return (
     <form class={styles.settings}>

@@ -1,15 +1,15 @@
 import styles from "./style.module.css";
-import { createEffect, createSignal, mergeProps } from "solid-js";
-// import useEventListener from "../../hooks/useEventListener";
+import { createEffect, createSignal, mergeProps, ErrorBoundary } from "solid-js";
 
 import { Difficulty } from './difficultyMenu'
+import { TechTree } from "./techtree";
 import { World } from "./world";
-import { units, resources } from "../data/pieces";
-import { Tooltip } from "./tooltip";
+import { resources } from "../data/pieces";
 
 // const POSITION = {x: 0, y: 0}
 
 export function Corvee() {
+  const [playing, setPlaying] = createSignal(true)
   const [dimension, setDimension] = createSignal(8);
   let resource = resources(dimension());
   const [state, setState] = createSignal({
@@ -92,45 +92,18 @@ export function Corvee() {
   //     }
   //     setDragState(state => ({...dragState, translation: POSITION}))
   // }, [dragState.isDragging, handleMouseMove, handleMouseUp])
-  const useList = (unit) => {
-    return [
-      `Attack: ${unit.attack}`,
-      `Defense: ${unit.defense}`,
-      `Speed: ${unit.speed}`,
-      `Range: ${unit.range ?? 1}`,
-      `Unit Cap: ${unit.cap}`,
-      `Cooldown: ${unit.cooldown}`,
-      " --- ",
-      `Abilities: `,
-      unit.abilities.join(", "),
-    ].filter((i) => !!i);
-  };
+
   return (
     <>
       <section class={styles.kings}>
         <h1 class={styles.title}>King's Corvée</h1>
+        <button class='center' onClick={() => setPlaying(p => !p)}>{playing() ? 'Pause' : 'Resume'}</button>
         <Difficulty dimension={dimension()} setDimension={setDimension} setState={setState} />
-        <p class={styles.description}>
-          A Cooldown-based Strategy game. Mouse over to see unit stats below:
-        </p>
-        <div class={styles.guide}>
-          {Object.values(units).map((u) => (
-            <Tooltip class={styles[u.name]} content={useList(u)}>
-              <p class={u.name}>
-                {u.name} &#x200B;
-                <span
-                  class={styles[u.css]}
-                  role="img"
-                  aria-label={u.name + "-icon"}
-                >
-                  &#x200B; {u.icon}
-                </span>
-              </p>
-            </Tooltip>
-          ))}
-        </div>
+        <TechTree />
       </section>
-      <World dimension={dimension()} {...state()} />
+      <ErrorBoundary fallback={err => <div>{JSON.stringify(err)}</div>}>
+        <World dimension={dimension()} state={state()} playing={playing}/>
+      </ErrorBoundary>
     </>
   );
 }

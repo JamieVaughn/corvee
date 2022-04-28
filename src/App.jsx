@@ -1,6 +1,6 @@
 import { Corvee } from './components/corvee'
-import { TodoList } from './components/todo-list';
-import { Counter } from './components/counter';
+import { TodoList } from './component-references/todo-list';
+import { Counter } from './component-references/counter';
 import './style.css'
 
 function App () {

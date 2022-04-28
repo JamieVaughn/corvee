@@ -63,3 +63,7 @@ header input {
     }
 }
 
+.center {
+	display: block;
+	margin: 4px auto !important;
+}

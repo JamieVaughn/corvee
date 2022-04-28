@@ -1,42 +1,35 @@
-import { createSignal, Show } from "solid-js";
+import { createSignal, createEffect, Show } from "solid-js";
 import styles from "./style.module.css";
 import { units } from "../data/pieces";
 
 import { AbilityMenu } from "./abilityMenu";
 import { UnitCard } from './unitcard'
-import { useInterval } from "../hooks/useInterval";
-import useEdge from "../hooks/useEdge";
-import useGrowth from "../hooks/useGrowth";
+import { isEdge, growthFactor } from "../helpers";
 
 const decay = false;
-// type Props = {  delay: number, dimension: number, matrix: number[], positionOne: number, positionTwo: number, resources: [] }
+// type Props = dimension: number | state: {  delay: number, matrix: number[], positionOne: number, positionTwo: number, resources: [] }
 export const World = (props) => {
-  let world
-  const canReach = (pos) => {
-    let row = Math.ceil(pos / 8);
-    let col = pos % 8;
-    let coef = row % 2 === 0 ? -1 : 1;
-    if (row % 2 === 0 && col === 0) coef = 1;
-    if (row % 2 === 1 && col === 0) coef = 0;
-    return [-props.dimension + coef, -props.dimension, -1, 1, props.dimension, props.dimension + coef];
-  };
-  // console.log('world', props.resources)
-  const [forts, setForts] = createSignal([props.positionOne]);
+  let world // ref for world component
+
+  const [inspect, setInspect] = createSignal(false)
+  const [forts, setForts] = createSignal([props.state.positionOne]);
   const [muster, setMuster] = createSignal([null, null]); // [index, total]
   const [hasSelection, setHasSelection] = createSignal(false)
   const [active, setActive] = createSignal([]); // Array<{id, type, ability, total?}>
-  const [troops, setTroops] = createSignal(props.matrix);
+  const [troops, setTroops] = createSignal(props.state.matrix);
   // const [boost, setBoost] = createSignal(1)
-  useInterval(() => {
-    console.log("active", active());
-    setTroops((state) => {
-      return state.map((unit, id) => {
+
+  // world clock
+  const [tick, setTick] = createSignal(0)
+  setInterval(() => {
+    setTroops(state => {
+      return state?.map((unit, id) => {
         let cap = units[unit.type].cap;
         if (unit.total < 0) {
           return (unit.total = 0), unit;
         }
         if (forts().includes(id)) {
-          let delta = useGrowth(cap, unit.total);
+          let delta = growthFactor(cap, unit.total);
           unit.total += delta;
           return unit;
         }
@@ -46,8 +39,29 @@ export const World = (props) => {
         return unit;
       });
     });
-  }, props.delay);
+    setTick(prev => props.playing ? prev + 1 : prev)
+  }, 3000 || props.state.delay)
 
+  const useInspect = e => (e.shiftKey) ? setInspect(k => !k) : null
+
+  createEffect(() => {
+    if(inspect()) {
+      console.log(`World Clock: ${props.playing ? tick() : `paused - ${tick()}`} seconds`)
+      console.log('props', props.state)
+      console.log("active", active(), troops());
+      console.log('resources', props.state.resources)
+    }
+  })
+
+  const canReach = (pos) => {
+    let row = Math.ceil(pos / 8);
+    let col = pos % 8;
+    let coef = row % 2 === 0 ? -1 : 1;
+    if (row % 2 === 0 && col === 0) coef = 1;
+    if (row % 2 === 1 && col === 0) coef = 0;
+    return [-props.dimension + coef, -props.dimension, -1, 1, props.dimension, props.dimension + coef];
+  };
+  
   const deployMusteredTroops = (e, unit, target) => {
     e.preventDefault();
     setHasSelection(false);
@@ -55,7 +69,7 @@ export const World = (props) => {
     // console.log('Target', target, unit)
     const pos = muster()[0];
     if (!(typeof target === "number") || !(typeof pos === "number")) return;
-    if (useEdge(pos, target, props.dimension)) return;
+    if (isEdge(pos, target, props.dimension)) return;
     if (
       target === pos ||
       troops()[target].type !== unit.type ||
@@ -72,12 +86,12 @@ export const World = (props) => {
     const player = muster()[1].player;
     if (type !== unit.type && player === unit.player) return;
     if (player !== unit.player) return console.log("Battles not yet supported");
-    // console.log('edge', useEdge(pos, target, props.dimension), 'same', target === pos)
+    // console.log('edge', isEdge(pos, target, props.dimension), 'same', target === pos)
 
     if (
       canReach(pos)
         .reduce((acc, cur) => {
-          if (useEdge(muster()[0], target, props.dimension)) return acc;
+          if (isEdge(muster()[0], target, props.dimension)) return acc;
           return [...acc, muster()[0] + cur];
         }, [])
         .includes(target)
@@ -132,7 +146,7 @@ export const World = (props) => {
     if (
       canReach(muster()[0])
         .reduce((acc, cur) => {
-          if (useEdge(muster()[0], target, props.dimension)) return acc;
+          if (isEdge(muster()[0], target, props.dimension)) return acc;
           return [...acc, muster()[0] + cur];
         }, [])
         .includes(target)
@@ -146,7 +160,7 @@ export const World = (props) => {
     if (
       canReach(muster()[0])
         .reduce((acc, cur) => {
-          if (useEdge(muster()[0], target, props.dimension)) return acc;
+          if (isEdge(muster()[0], target, props.dimension)) return acc;
           return [...acc, muster()[0] + cur];
         }, [])
         .includes(target)
@@ -156,11 +170,9 @@ export const World = (props) => {
     return "";
   };
 
-  // console.log('world', troops())
-
   return (
     <div class={styles.worldwrapper}>
-      <div class={styles.world}>
+      <div class={styles.world} ref={world}>
         <div class={styles.backboard} />
         <section
           class={styles.grid}
@@ -189,9 +201,9 @@ export const World = (props) => {
                       <AbilityMenu abilities={units[unit.type].abilities} />
                     </div>
                   </Show>
-                  <Show when={typeof props.resources[i] === "string"} fallback={null}>
-                    <span class={`${styles.feature} ${props.resources[i]}`}>
-                      {props.resources[i]}
+                  <Show when={typeof props.state.resources?.[i] === "string"} fallback={null}>
+                    <span class={`${styles.feature} ${props.state.resources[i]}`}>
+                      {props.state.resources[i]}
                     </span> 
                   </Show>
                 </div>
@@ -200,7 +212,7 @@ export const World = (props) => {
           </For>
         </section>
       </div>
-      <div>
+      <div onMouseEnter={useInspect}>
         <UnitCard>
           <div>Position: {muster()[0]}</div>
           <div>Type: {muster()[1]?.type}</div>
