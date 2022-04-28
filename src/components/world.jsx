@@ -7,17 +7,32 @@ import { UnitCard } from './unitcard'
 import { isEdge, growthFactor } from "../helpers";
 
 const decay = false;
-// type Props = dimension: number | state: {  delay: number, matrix: number[], positionOne: number, positionTwo: number, resources: [] }
+// type Props = delay: number, dimension: number, resources: Array<{}>, playing: boolean
 export const World = (props) => {
   let world // ref for world component
-
+  // signals
   const [inspect, setInspect] = createSignal(false)
-  const [forts, setForts] = createSignal([props.state.positionOne]);
+  const [forts, setForts] = createSignal([0]);
   const [muster, setMuster] = createSignal([null, null]); // [index, total]
   const [hasSelection, setHasSelection] = createSignal(false)
   const [active, setActive] = createSignal([]); // Array<{id, type, ability, total?}>
-  const [troops, setTroops] = createSignal(props.state.matrix);
+  // derived signal
+  const board = () => Array(props.dimension ** 2)
+                      .fill(0)
+                      .map(() => ({ type: "c", total: 0, player: 1 }))
+  const [troops, setTroops] = createSignal([...board()])
+  const mode = () => props.dimension === 8 ? 'easy' : props.dimension === 12 ? 'med' : 'hard'
   // const [boost, setBoost] = createSignal(1)
+
+  createEffect(() => {
+    console.log(props.dimension)
+    setTroops([...board()])
+  })
+
+  createEffect(() => {
+    console.log('board', props.dimension, board().length)
+    console.log('troops', troops().length, troops()[0])
+  })
 
   // world clock
   const [tick, setTick] = createSignal(0)
@@ -40,16 +55,15 @@ export const World = (props) => {
       });
     });
     setTick(prev => props.playing ? prev + 1 : prev)
-  }, 3000 || props.state.delay)
+  }, 3000 || props.delay)
 
   const useInspect = e => (e.shiftKey) ? setInspect(k => !k) : null
 
   createEffect(() => {
     if(inspect()) {
       console.log(`World Clock: ${props.playing ? tick() : `paused - ${tick()}`} seconds`)
-      console.log('props', props.state)
       console.log("active", active(), troops());
-      console.log('resources', props.state.resources)
+      console.log('resources', props.resources)
     }
   })
 
@@ -175,7 +189,7 @@ export const World = (props) => {
       <div class={styles.world} ref={world}>
         <div class={styles.backboard} />
         <section
-          class={styles.grid}
+          class={`${styles[mode()]} ${styles.grid}`}
           onDblClick={() => console.log(troops())}
           onContextMenu={(e) => e.preventDefault()}
         >
@@ -201,9 +215,9 @@ export const World = (props) => {
                       <AbilityMenu abilities={units[unit.type].abilities} />
                     </div>
                   </Show>
-                  <Show when={typeof props.state.resources?.[i] === "string"} fallback={null}>
-                    <span class={`${styles.feature} ${props.state.resources[i]}`}>
-                      {props.state.resources[i]}
+                  <Show when={typeof props.resources?.[i] === "string"} fallback={null}>
+                    <span class={`${styles.feature} ${props.resources[i]}`}>
+                      {props.resources[i]}
                     </span> 
                   </Show>
                 </div>

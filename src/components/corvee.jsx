@@ -4,23 +4,20 @@ import { createEffect, createSignal, mergeProps, ErrorBoundary } from "solid-js"
 import { Difficulty } from './difficultyMenu'
 import { TechTree } from "./techtree";
 import { World } from "./world";
-import { resources } from "../data/pieces";
+import { initResources } from "../data/pieces";
 
 // const POSITION = {x: 0, y: 0}
 
 export function Corvee() {
+  // signals
+  const positionOne = 0
   const [playing, setPlaying] = createSignal(true)
+  const [delay, setDelay] = createSignal(1000)
   const [dimension, setDimension] = createSignal(8);
-  let resource = resources(dimension());
-  const [state, setState] = createSignal({
-    delay: 1000,
-    positionOne: 0,
-    positionTwo: dimension() ** 2 - 1,
-    resources: resource,
-    matrix: Array(dimension() ** 2)
-      .fill(0)
-      .map(() => ({ type: "c", total: 0, player: 1 })),
-  });
+  // derived signals
+  const resources = () => initResources(dimension());
+  const positionTwo = () => dimension() ** 2 -1
+
   // const [dragState, setDragState] = createSignal({
   //     isDragging: false,
   //     origin: POSITION,
@@ -93,16 +90,20 @@ export function Corvee() {
   //     setDragState(state => ({...dragState, translation: POSITION}))
   // }, [dragState.isDragging, handleMouseMove, handleMouseUp])
 
+  createEffect(() => {
+    console.log('state', dimension(), positionTwo(), resources())
+  })
+
   return (
     <>
       <section class={styles.kings}>
         <h1 class={styles.title}>King's Corvée</h1>
         <button class='center' onClick={() => setPlaying(p => !p)}>{playing() ? 'Pause' : 'Resume'}</button>
-        <Difficulty dimension={dimension()} setDimension={setDimension} setState={setState} />
+        <Difficulty setDimension={setDimension} />
         <TechTree />
       </section>
       <ErrorBoundary fallback={err => <div>{JSON.stringify(err)}</div>}>
-        <World dimension={dimension()} state={state()} playing={playing}/>
+        <World delay={delay()} dimension={dimension()} resources={resources()} playing={playing()}/>
       </ErrorBoundary>
     </>
   );

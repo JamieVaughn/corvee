@@ -83,7 +83,6 @@
     width: calc(var(--grid-tile-size) * var(--hex-buffer));
     border: 1px solid #888;
     filter: hue-rotate(-30deg) sepia(.1) drop-shadow(-20px 20px 30px black);
-    /* transform: rotateX(55deg) rotateY(0deg) rotateZ(-45deg); */
 
 }
 .grid {
@@ -94,9 +93,6 @@
     grid-template-rows: repeat(var(--grid-columns), 1fr);
     grid-template-columns: repeat(var(--grid-lines), 1fr);
     grid-gap: var(--grid-gap);
-    /* transform: rotateX(55deg) rotateY(0deg) rotateZ(-45deg); */
-
-
 }
 /* .cell:nth-of-type(1)::before {
     content: '';
@@ -107,14 +103,52 @@
     top: 0;
     left: 0;
 } */
-.cell:nth-of-type(16n + 1),
-.cell:nth-of-type(16n + 2),
-.cell:nth-of-type(16n + 3),
-.cell:nth-of-type(16n + 4),
-.cell:nth-of-type(16n + 5),
-.cell:nth-of-type(16n + 6),
-.cell:nth-of-type(16n + 7),
-.cell:nth-of-type(16n + 8) {
+.easy .cell:nth-of-type(16n + 1),
+.easy .cell:nth-of-type(16n + 2),
+.easy .cell:nth-of-type(16n + 3),
+.easy .cell:nth-of-type(16n + 4),
+.easy .cell:nth-of-type(16n + 5),
+.easy .cell:nth-of-type(16n + 6),
+.easy .cell:nth-of-type(16n + 7),
+.easy .cell:nth-of-type(16n + 8) {
+    /* background-color: crimson; */
+   transform: translateX(calc(var(--cell-side) / 1.6));
+}
+.med .cell:nth-of-type(24n + 1),
+.med .cell:nth-of-type(24n + 2),
+.med .cell:nth-of-type(24n + 3),
+.med .cell:nth-of-type(24n + 4),
+.med .cell:nth-of-type(24n + 5),
+.med .cell:nth-of-type(24n + 6),
+.med .cell:nth-of-type(24n + 7),
+.med .cell:nth-of-type(24n + 8),
+.med .cell:nth-of-type(24n + 9),
+.med .cell:nth-of-type(24n + 10),
+.med .cell:nth-of-type(24n + 11),
+.med .cell:nth-of-type(24n + 12) {
+    /* background-color: crimson; */
+   transform: translateX(calc(var(--cell-side) / 1.6));
+}
+.hard .cell:nth-of-type(40n + 1),
+.hard .cell:nth-of-type(40n + 2),
+.hard .cell:nth-of-type(40n + 3),
+.hard .cell:nth-of-type(40n + 4),
+.hard .cell:nth-of-type(40n + 5),
+.hard .cell:nth-of-type(40n + 6),
+.hard .cell:nth-of-type(40n + 7),
+.hard .cell:nth-of-type(40n + 8),
+.hard .cell:nth-of-type(40n + 9),
+.hard .cell:nth-of-type(40n + 10),
+.hard .cell:nth-of-type(40n + 11),
+.hard .cell:nth-of-type(40n + 12),
+.hard .cell:nth-of-type(40n + 13),
+.hard .cell:nth-of-type(40n + 14),
+.hard .cell:nth-of-type(40n + 15),
+.hard .cell:nth-of-type(40n + 16),
+.hard .cell:nth-of-type(40n + 17),
+.hard .cell:nth-of-type(40n + 18),
+.hard .cell:nth-of-type(40n + 19),
+.hard .cell:nth-of-type(40n + 20) {
     /* background-color: crimson; */
    transform: translateX(calc(var(--cell-side) / 1.6));
 }
@@ -182,8 +216,6 @@
 .standard {
     transform: rotate(0deg)
 }
-
-
 
 .unitcard {
     position: absolute;

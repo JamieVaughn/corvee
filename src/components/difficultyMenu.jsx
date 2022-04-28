@@ -1,51 +1,44 @@
-import { mergeProps } from "solid-js";
 import styles from './style.module.css'
 
 export const Difficulty = (props) => {
 
+  const setDOMDimension = num => {
+    props.setDimension(Number(num));
+    document.documentElement.style.setProperty(
+      "--grid-columns",
+      String(num)
+    );
+    document.documentElement.style.setProperty(
+      "--grid-lines",
+      String(num)
+    );
+  }
+  
   const handleDifficulty = (e) => {
-    if (e.target.value) {
-      console.log('c', e.target.value)
-      props.setDimension(Number(e.target.value));
-      document.documentElement.style.setProperty(
-        "--grid-columns",
-        String(e.target.value)
-      );
-      document.documentElement.style.setProperty(
-        "--grid-lines",
-        String(e.target.value)
-      );
-    }
-  };
-  const handleStart = (e) => {
-    e.preventDefault();
-    props.setState(state => {
-      return {
-        state, 
-        positionTwo: props.dimension ** 2 - 1,
-        matrix: Array(props.dimension ** 2)
-        .fill(0)
-        .map(() => ({ type: "c", total: 0, player: 1 }))
+    e.preventDefault()
+    for (const input of e.target) {
+      if(input.checked) {
+        setDOMDimension(input.value)
       }
-    })
+    }
   };
 
   return (
-    <form class={styles.settings}>
+    <form class={styles.settings} onSubmit={handleDifficulty}>
       Choose difficulty:
-      <label for="easy" onClick={handleDifficulty}>
+      <label for="easy">
         Easy
         <input type="radio" id="easy" name="difficulty" value="8" checked />
       </label>
-      <label for="medium" onClick={handleDifficulty}>
+      <label for="medium">
         Medium
         <input type="radio" id="medium" name="difficulty" value="12" />
       </label>
-      <label for="hard" onClick={handleDifficulty}>
+      <label for="hard">
         Hard
         <input type="radio" id="hard" name="difficulty" value="20" />
       </label>
-      <button type="button" class={styles.startBtn} onClick={handleStart}>
+      <button type="submit" class={styles.startBtn} >
         Start Game
       </button>
     </form>

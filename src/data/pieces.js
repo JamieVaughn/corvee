@@ -188,7 +188,7 @@ const mapBuilder = () => (size) => {
 //     {type: '🌲', pos: d => Math.floor(d*3)},
 //     {type: '🌲', pos: d => d**2 - Math.floor(d*3)},
 // ]
-export const resources = mapBuilder();
+export const initResources = mapBuilder();
 
 export const places = {
   stable: "🏟️",
