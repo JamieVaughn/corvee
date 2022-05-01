@@ -219,10 +219,12 @@
 
 .unitcard {
     position: absolute;
-    left: 0;
+    left: 8px;
     top: 0;
     border: 1px solid crimson;
     padding: 2rem;
     display: grid;
+}
+.mustered {
     grid-template-columns: repeat(3, minmax(100px, 1fr));
 }

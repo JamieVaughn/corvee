@@ -18,6 +18,9 @@ export function Corvee() {
   const resources = () => initResources(dimension());
   const positionTwo = () => dimension() ** 2 -1
 
+  const board = Array(dimension() ** 2)
+                      .fill(0)
+                      .map(() => ({ type: "c", total: 0, player: 1 }));
   // const [dragState, setDragState] = createSignal({
   //     isDragging: false,
   //     origin: POSITION,
@@ -103,7 +106,7 @@ export function Corvee() {
         <TechTree />
       </section>
       <ErrorBoundary fallback={err => <div>{JSON.stringify(err)}</div>}>
-        <World delay={delay()} dimension={dimension()} resources={resources()} playing={playing()}/>
+        <World delay={delay()} dimension={dimension()} board={board} resources={resources()} playing={playing()}/>
       </ErrorBoundary>
     </>
   );

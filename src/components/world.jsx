@@ -1,10 +1,10 @@
-import { createSignal, createEffect, Show } from "solid-js";
+import { createSignal, createEffect, Show, ErrorBoundary, on, onCleanup } from "solid-js";
 import styles from "./style.module.css";
 import { units } from "../data/pieces";
 
 import { AbilityMenu } from "./abilityMenu";
 import { UnitCard } from './unitcard'
-import { isEdge, growthFactor } from "../helpers";
+import { draw, isEdge, growthFactor } from "../helpers";
 
 const decay = false;
 // type Props = delay: number, dimension: number, resources: Array<{}>, playing: boolean
@@ -12,31 +12,46 @@ export const World = (props) => {
   let world // ref for world component
   // signals
   const [inspect, setInspect] = createSignal(false)
+  const [apm, setApm] = createSignal(0) // increment for every user input event
   const [forts, setForts] = createSignal([0]);
   const [muster, setMuster] = createSignal([null, null]); // [index, total]
   const [hasSelection, setHasSelection] = createSignal(false)
   const [active, setActive] = createSignal([]); // Array<{id, type, ability, total?}>
-  // derived signal
-  const board = () => Array(props.dimension ** 2)
-                      .fill(0)
-                      .map(() => ({ type: "c", total: 0, player: 1 }))
-  const [troops, setTroops] = createSignal([...board()])
-  const mode = () => props.dimension === 8 ? 'easy' : props.dimension === 12 ? 'med' : 'hard'
+  const [troops, setTroops] = createSignal(
+    Array(props.dimension ** 2)
+    .fill(0)
+    .map(() => ({ type: "c", total: 0, player: 1 }))
+  )
   // const [boost, setBoost] = createSignal(1)
 
-  createEffect(() => {
-    console.log(props.dimension)
-    setTroops([...board()])
-  })
+  // derived signal
+  const mode = () => props.dimension === 8 ? 'easy' : props.dimension === 12 ? 'med' : 'hard'
 
   createEffect(() => {
-    console.log('board', props.dimension, board().length)
-    console.log('troops', troops().length, troops()[0])
+    console.log(`time: ${tick()}`)
+    console.log(`Mustered troops: `, active())
+    console.log(`Activated troops: `, active())
+    console.log({troops: troops()})
   })
 
   // world clock
   const [tick, setTick] = createSignal(0)
-  setInterval(() => {
+  // setInterval(() => {
+  //   if(!props.playing) return;
+  //   setTick(tick() + Number(props.playing))
+  // }, 3000 || props.delay)
+  const drawCallback = () => {
+    console.log('drawcb')
+    setTick(tick() + Number(props.playing))
+  }
+
+  const animationFrame = draw(0, {drawCallback, fps: 0.33} )
+
+  onCleanup(() => {
+    cancelAnimationFrame(animationFrame)
+  })
+
+  createEffect(on(tick, (tick) => {
     setTroops(state => {
       return state?.map((unit, id) => {
         let cap = units[unit.type].cap;
@@ -54,8 +69,7 @@ export const World = (props) => {
         return unit;
       });
     });
-    setTick(prev => props.playing ? prev + 1 : prev)
-  }, 3000 || props.delay)
+  }))
 
   const useInspect = e => (e.shiftKey) ? setInspect(k => !k) : null
 
@@ -64,6 +78,7 @@ export const World = (props) => {
       console.log(`World Clock: ${props.playing ? tick() : `paused - ${tick()}`} seconds`)
       console.log("active", active(), troops());
       console.log('resources', props.resources)
+      console.log(`board: ${props.dimension}x${props.dimension} => ${troops().length}`)
     }
   })
 
@@ -149,7 +164,7 @@ export const World = (props) => {
       troop.style.setProperty("animation-duration", cd + "s");
       troop.classList.toggle("oncooldown");
       setTimeout(() => {
-        setactive()((prev) => prev.filter((a) => a.id !== id));
+        setActive((prev) => prev.filter((a) => a.id !== id));
         troop.classList.remove("oncooldown");
       }, cd * 1000);
     }
@@ -193,45 +208,45 @@ export const World = (props) => {
           onDblClick={() => console.log(troops())}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <For each={troops()}>
+          <ErrorBoundary fallback={err => err}>
+          <For each={troops()} fallback={<span>Troops Lost</span>}>
             {(unit, i) => {
               return (
                 <div
                   class={`${styles.cell} ${
-                    forts().includes(i) ? styles.king : ""
-                  } ${deploymentZones(i)}`}
-                  onContextMenu={(e) => deployMusteredTroops(e, unit, i)}
+                    forts().includes(i()) ? styles.king : ""
+                  } ${deploymentZones(i())}`}
+                  onContextMenu={(e) => deployMusteredTroops(e, unit, i())}
                 >
-                  <Show when={unit.total > 0} fallback={null}>
+                  <Show when={(apm() || tick()) && unit.total > 0} fallback={<span></span>}>
                     <div
                       class={`${styles.troop}`}
-                      onClick={(e) => musterTroops(unit, i)}
-                      onContextMenu={(e) => activateAbility(e, unit, i)}
+                      onClick={(e) => musterTroops(unit, i())}
+                      onContextMenu={(e) => activateAbility(e, unit, i())}
                     >
-                      <span>{Math.round(unit.total)}</span>
+                      <span>{Math.round(troops()[i()].total)}</span>
                       <span class={styles[units[unit.type].css]}>
                         {units[unit.type].icon}
                       </span>
-                      <AbilityMenu abilities={units[unit.type].abilities} />
+                      {/* <AbilityMenu abilities={units[unit.type].abilities} /> */}
                     </div>
                   </Show>
-                  <Show when={typeof props.resources?.[i] === "string"} fallback={null}>
-                    <span class={`${styles.feature} ${props.resources[i]}`}>
-                      {props.resources[i]}
+                  <Show when={typeof props.resources?.[i()] === "string"} fallback={null}>
+                    <span class={`${styles.feature} ${props.resources[i()]}`}>
+                      {props.resources[i()]}
                     </span> 
                   </Show>
                 </div>
               )
             }}
           </For>
+          </ErrorBoundary>
         </section>
       </div>
       <div onMouseEnter={useInspect}>
-        <UnitCard>
-          <div>Position: {muster()[0]}</div>
-          <div>Type: {muster()[1]?.type}</div>
-          <div>Troops: <span>{Math.round(muster()[1]?.total)}</span></div>
-        </UnitCard>
+        <Show when={muster().some(m => m)} fallback={<UnitCard empty={true}></UnitCard>}>
+          <UnitCard mustered={muster()} />
+        </Show>
       </div>
     </div>
   );
