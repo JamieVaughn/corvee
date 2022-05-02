@@ -15,7 +15,7 @@ export function growthFactor(cap, n, boost = 1) {
 // each frame must take 100ms
 // Now frame executes in 16ms (60fps) so
 // the loop iterates 7 times (16*7 = 112ms) ...
-export function draw(now, {then = now, delta = 0, drawCallback, fps = 1}) {
+export function draw(now, {then = now, delta = 0, drawCallback, fps = 30}) {
     let interval = 1000 / fps
     requestAnimationFrame(timestamp => draw(timestamp, {then, delta: now - then, drawCallback, fps}));
     if (delta > interval) { // track if elapsed time is more than render interval 

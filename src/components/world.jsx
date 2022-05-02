@@ -28,10 +28,12 @@ export const World = (props) => {
   const mode = () => props.dimension === 8 ? 'easy' : props.dimension === 12 ? 'med' : 'hard'
 
   createEffect(() => {
+    troops()
+    if(tick() % 30) return
     console.log(`time: ${tick()}`)
-    console.log(`Mustered troops: `, active())
+    console.log(`Mustered troops: `, muster())
     console.log(`Activated troops: `, active())
-    console.log({troops: troops()})
+    console.log(`APM: ${(apm() * (60 / tick())).toFixed(1)}`)
   })
 
   // world clock
@@ -41,7 +43,6 @@ export const World = (props) => {
   //   setTick(tick() + Number(props.playing))
   // }, 3000 || props.delay)
   const drawCallback = () => {
-    console.log('drawcb')
     setTick(tick() + Number(props.playing))
   }
 
@@ -91,12 +92,13 @@ export const World = (props) => {
     return [-props.dimension + coef, -props.dimension, -1, 1, props.dimension, props.dimension + coef];
   };
   
-  const deployMusteredTroops = (e, unit, target) => {
-    e.preventDefault();
+  const deployMusteredTroops = (_e, unit, target) => {
+    // e.preventDefault();
     setHasSelection(false);
     // console.log('Muster', ...muster())
     // console.log('Target', target, unit)
     const pos = muster()[0];
+    console.log('deploy', _e, target)
     if (!(typeof target === "number") || !(typeof pos === "number")) return;
     if (isEdge(pos, target, props.dimension)) return;
     if (
@@ -199,13 +201,33 @@ export const World = (props) => {
     return "";
   };
 
+  const delegateAPM = e => {
+    e.preventDefault()
+    setApm(apm => apm + 1)
+  }
+
+  const handleCellClick = (e, unit, i) => {
+    console.log( {i: i(), muster: muster()[0], reach: canReach(muster()[0])})
+    if(troops()[i()]?.total === 0 && !canReach(muster()[0]).includes(i())) {
+      setMuster([null, null])
+      return
+    }
+    if(muster().every(m => m?.valueOf)) {
+      deployMusteredTroops(e, unit, i())
+      setMuster([null, null])
+    } else {
+      musterTroops(unit, i())
+    }
+  }
+
+
   return (
-    <div class={styles.worldwrapper}>
+    <div class={styles.worldwrapper} onContextMenu={delegateAPM} onClick={delegateAPM} onDoubleClick={delegateAPM}>
       <div class={styles.world} ref={world}>
         <div class={styles.backboard} />
         <section
           class={`${styles[mode()]} ${styles.grid}`}
-          onDblClick={() => console.log(troops())}
+          onClick={e => e.shiftKey ? console.log(troops()) : null}
           onContextMenu={(e) => e.preventDefault()}
         >
           <ErrorBoundary fallback={err => err}>
@@ -216,12 +238,17 @@ export const World = (props) => {
                   class={`${styles.cell} ${
                     forts().includes(i()) ? styles.king : ""
                   } ${deploymentZones(i())}`}
-                  onContextMenu={(e) => deployMusteredTroops(e, unit, i())}
+                  onClick={(e) => deployMusteredTroops(e, unit, i())}
+                  onDragEnd={(e) => {console.log('endcap', e); deployMusteredTroops(e, unit, i()) }}
+                  // onDragOver={e => console.log('over', e)}
+                  onDragEnter={e => console.log('enter', e)}
                 >
                   <Show when={(apm() || tick()) && unit.total > 0} fallback={<span></span>}>
                     <div
                       class={`${styles.troop}`}
-                      onClick={(e) => musterTroops(unit, i())}
+                      onClick={(e) => { e.stopPropagation(); musterTroops(unit, i()) }}
+                      draggable='true'
+                      onDragStart={e => musterTroops(unit, i())}
                       onContextMenu={(e) => activateAbility(e, unit, i())}
                     >
                       <span>{Math.round(troops()[i()].total)}</span>

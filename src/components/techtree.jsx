@@ -21,10 +21,11 @@ export const TechTree = () => {
   };
 
   return (
-    <>
-      <p class={styles.description}>
-        A Cooldown-based Strategy game. Mouse over to see unit stats below:
-      </p>
+    <details>
+      <summary class={styles.description}>
+        Open Tech tree:
+      </summary>
+      <h6 class='center'>Mouse over to see unit stats below:</h6>
       <div class={styles.guide}>
         <For each={Object.values(units)}>
           {u => (
@@ -43,6 +44,6 @@ export const TechTree = () => {
           )}
         </For>
       </div>
-    </>
+    </details>
   )
 }

@@ -1,40 +1,35 @@
 import { createSignal, createEffect } from 'solid-js'
+import { units } from '../data/pieces'
 import styles from './style.module.css'
 
-// const [trace, setTrace] = createSignal({prev: {}, current: {}})
 export const UnitCard = (props) => {
-    // setTrace({prev: trace().current, current: props})
-    // createEffect(() => {
-    //   // const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-    //   //   if (trace().prev[k] !== v) {
-    //   //     ps[k] = [trace().current[k], v];
-    //   //   }
-    //   //   return ps;
-    //   // }, {});
-    //   // if (Object.keys(changedProps).length > 0) {
-    //   //   console.log('Changed props:', changedProps);
-    //   // }
-    //   console.log('trace', props, trace())
-    // });
-
-    console.log(props.mustered)
 
     if(props.empty) {
       return (
         <section class={styles.unitcard}>
-          <div>Select Troops</div>
+          <h4>Select Troops</h4>
         </section>
       )
     }
+    const unit = units[props.mustered[1]?.type]
+    const [total, setTotal] = createSignal(props.mustered[1]?.total)
+    createEffect(() => {
+      setTotal(props.mustered[1]?.total)
+    })
+
 
     return (
       <section class={`${styles.unitcard} ${styles.mustered}`}>
-        <div>Unit Card</div>
-        <div>Stats</div>
-        <div>Abilities</div>
-        <div>Position: {props.mustered[0]}</div>
-        <div>Type: {props.mustered[1]?.type}</div>
-        <div>Troops: <span>{Math.round(props.mustered[1]?.total)}</span></div>
+        <h3 data-capital>{unit.name}</h3> 
+        <span>
+          <code>{Math.round(total())} troops @ ({props.mustered[0] % 8},{ Math.floor(props.mustered[0] / 8)})</code>
+        </span>
+        <Show when={unit.abilities.length} fallback={null}>
+          <h4>Abilities: </h4>
+          <span>{unit.abilities.join(', ')}</span>
+        </Show>
+        <h4>Stats:</h4>
+        <span>Attack: {unit.attack}, Defense: {unit.defense}, Range: {unit.range}, Speed: {unit.speed}</span>
       </section>
     )
 }

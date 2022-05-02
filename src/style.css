@@ -1,3 +1,9 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
 html,
 body {
 	margin: 0;
@@ -45,6 +51,9 @@ header input {
 	padding: 20px;
 }
 
+details {
+	padding: 1rem;
+}
 
 [class*='troop'].oncooldown {
 	background: linear-gradient(to right, #f7456370 50%, #ffffff70 50%);
@@ -63,7 +72,17 @@ header input {
     }
 }
 
+.flex {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0.5rem;
+}
+
 .center {
 	display: block;
 	margin: 4px auto !important;
+	text-align: center;
 }
+
+

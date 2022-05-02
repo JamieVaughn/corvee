@@ -93,17 +93,24 @@ export function Corvee() {
   //     setDragState(state => ({...dragState, translation: POSITION}))
   // }, [dragState.isDragging, handleMouseMove, handleMouseUp])
 
-  createEffect(() => {
-    console.log('state', dimension(), positionTwo(), resources())
-  })
+  // createEffect(() => {
+  //   console.log('state', dimension(), positionTwo(), resources())
+  // })
+
+  const [count, setCount] = createSignal(0);
+
+  setInterval(() => {
+    setCount(prev => playing() ? prev + 1 : prev)
+  }, 1000)
 
   return (
     <>
       <section class={styles.kings}>
         <h1 class={styles.title}>King's Corvée</h1>
-        <button class='center' onClick={() => setPlaying(p => !p)}>{playing() ? 'Pause' : 'Resume'}</button>
+        <h6 class='center'>A Cooldown-based Strategy game.</h6>
+        <div class='flex'><span>{count()} seconds</span><button onClick={() => setPlaying(p => !p)}>{playing() ? 'Pause' : 'Resume'}</button></div>
         <Difficulty setDimension={setDimension} />
-        <TechTree />
+        <span><TechTree /></span>
       </section>
       <ErrorBoundary fallback={err => <div>{JSON.stringify(err)}</div>}>
         <World delay={delay()} dimension={dimension()} board={board} resources={resources()} playing={playing()}/>

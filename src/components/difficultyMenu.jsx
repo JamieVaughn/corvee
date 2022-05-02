@@ -26,17 +26,17 @@ export const Difficulty = (props) => {
   return (
     <form class={styles.settings} onSubmit={handleDifficulty}>
       Choose difficulty:
+      <input type="radio" id="easy" name="difficulty" value="8" checked />
       <label for="easy">
         Easy
-        <input type="radio" id="easy" name="difficulty" value="8" checked />
       </label>
+      <input type="radio" id="medium" name="difficulty" value="12" />
       <label for="medium">
         Medium
-        <input type="radio" id="medium" name="difficulty" value="12" />
       </label>
+      <input type="radio" id="hard" name="difficulty" value="20" />
       <label for="hard">
         Hard
-        <input type="radio" id="hard" name="difficulty" value="20" />
       </label>
       <button type="submit" class={styles.startBtn} >
         Start Game

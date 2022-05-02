@@ -18,6 +18,12 @@
     margin: 0 auto;
     text-align: center;
 }
+.settings :is(input[type=radio]) {
+    display: none;
+}
+.settings input:checked + label {
+    background-color: skyblue;
+} 
 .description, .title { text-align: center; }
 .conscript {grid-area: conscript;}
 .laborer { grid-area: laborer;}
@@ -41,7 +47,8 @@
     "engineer  rider     bowman   alchemist"
     "siege   warelephant   ...    pyromancer ";
     justify-content: center;
-    margin: 8px auto;
+    margin: 0 auto;
+    padding: 8px;
 }
 .guide p {
     border: 1px solid steelblue;
@@ -71,6 +78,7 @@
     justify-content: center;
     align-items: center;
     padding: 2rem;
+    background: #dedede;
 }
 .world {
     transform: rotateX(60deg) rotateY(0deg) rotateZ(-50deg);
@@ -79,8 +87,8 @@
     position: absolute;
     padding: var(--board-padding);
     background: center / cover url('../../img/grass.png') forestgreen no-repeat;
-    height: calc(var(--grid-tile-size) * var(--grid-lines));
-    width: calc(var(--grid-tile-size) * var(--hex-buffer));
+    height: calc(var(--grid-tile-size) * var(--grid-lines) + 2 * var(--board-padding));
+    width: calc(var(--grid-tile-size) * var(--hex-buffer) + 3 * var(--board-padding));
     border: 1px solid #888;
     filter: hue-rotate(-30deg) sepia(.1) drop-shadow(-20px 20px 30px black);
 
@@ -94,15 +102,7 @@
     grid-template-columns: repeat(var(--grid-lines), 1fr);
     grid-gap: var(--grid-gap);
 }
-/* .cell:nth-of-type(1)::before {
-    content: '';
-    background: white;
-    height: var(--cell-side);
-    width: var(--cell-side);
-    position: absolute;
-    top: 0;
-    left: 0;
-} */
+
 .easy .cell:nth-of-type(16n + 1),
 .easy .cell:nth-of-type(16n + 2),
 .easy .cell:nth-of-type(16n + 3),
@@ -164,10 +164,9 @@
     transform: translateY(2px) scale(.97);
 }
 .cell {
-    /* position: relative; */
     background-color: transparent;
-    width: var(--cell-side);
-    height: var(--cell-side);
+    /* width: var(--cell-side);
+    height: var(--cell-side); */
     transition: all 400ms;
     transition: outline 0ms;
     position: relative;
@@ -176,6 +175,7 @@
     align-items: center;
     border: var(--border) solid rebeccapurple;
     overflow: hidden;
+    user-select: none;
 }
 .cell:hover, .muster:hover {
     outline: 3px dashed deeppink;
@@ -220,11 +220,32 @@
 .unitcard {
     position: absolute;
     left: 8px;
-    top: 0;
-    border: 1px solid crimson;
-    padding: 2rem;
+    top: 8px;
+    border: 1px solid silver;
+    border-radius: 10px;
+    background: #f2f2f2;
+    box-shadow:  20px 20px 60px #f1f1f1,
+             -20px -20px 60px #ffffff;
+    padding: 1rem;
     display: grid;
+    grid-gap: 8px;
+    color: navy;
 }
+.unitcard :is(h3) {
+    margin: 4px 0;
+}
+.unitcard :is(h4) {
+    justify-self: end;
+}
+.unitcard :is([data-capital]) {
+    text-transform: capitalize;
+}
+.unitcard :is(span) {
+    color: royalblue;
+    font-size: 12px;
+}
+
 .mustered {
-    grid-template-columns: repeat(3, minmax(100px, 1fr));
+    grid-template-columns: min-content 125px;
+    align-items: center;
 }
