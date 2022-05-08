@@ -15,6 +15,7 @@ export const World = (props) => {
   const [apm, setApm] = createSignal(0) // increment for every user input event
   const [forts, setForts] = createSignal([0]);
   const [muster, setMuster] = createSignal([null, null]); // [index, total]
+  const [selected, setSelected] = createSignal(null)
   const [hasSelection, setHasSelection] = createSignal(false)
   const [active, setActive] = createSignal([]); // Array<{id, type, ability, total?}>
   const [troops, setTroops] = createSignal(
@@ -53,6 +54,7 @@ export const World = (props) => {
   })
 
   createEffect(on(tick, (tick) => {
+    troops()
     setTroops(state => {
       return state?.map((unit, id) => {
         let cap = units[unit.type].cap;
@@ -142,9 +144,11 @@ export const World = (props) => {
       );
       setMuster([null, null]);
     }
+    activateAbility(_e, unit, target)
   };
+
   const musterTroops = (unit, id) => {
-    console.log(unit, id);
+    console.log('muster', active(), unit, id);
     if (active().find((a) => a.id === id)) return;
     if (typeof id === "number" && unit.total > 0) {
       setMuster([id, unit]);
@@ -154,15 +158,14 @@ export const World = (props) => {
   const activateAbility = (e, unit, id) => {
     e.preventDefault();
     setHasSelection(false)
-    console.log(unit, id, units[unit.type].abilities);
+    console.log('activate', e.currentTarget, unit, id, units[unit.type].abilities);
     if (active().find((a) => a.id === id)) return;
-    let troop = e.currentTarget;
+    let troop = e.target.children.length ? e.target.children[0] : e.currentTarget
     if (typeof id === "number" && unit.total > 0) {
-      setActive([
-        ...active(),
-        { id, type: unit.type, total: unit.total, ability: "build" },
-      ]);
-      let cd = Math.random() > 0.5 ? 10 : 2;
+      setActive(prev => {
+        return active().concat({ id, type: unit.type, total: unit.total, abilities: units[unit.type].abilities })
+      });
+      let cd = Math.random() > 0.5 ? 6 : 1;
       troop.style.setProperty("animation-duration", cd + "s");
       troop.classList.toggle("oncooldown");
       setTimeout(() => {
@@ -238,25 +241,28 @@ export const World = (props) => {
                   class={`${styles.cell} ${
                     forts().includes(i()) ? styles.king : ""
                   } ${deploymentZones(i())}`}
-                  onClick={(e) => deployMusteredTroops(e, unit, i())}
-                  onDragEnd={(e) => {console.log('endcap', e); deployMusteredTroops(e, unit, i()) }}
-                  // onDragOver={e => console.log('over', e)}
-                  onDragEnter={e => console.log('enter', e)}
+                  // onClick={(e) => deployMusteredTroops(e, unit, i())}
+                  // onDragStart={(e) => {console.log('dragstart')}}
+                  // onDragEnd={(e) => {console.log('endcap', e); deployMusteredTroops(e, unit, i()) }}
+                  onDrop={e => {if(deploymentZones(i())) {deployMusteredTroops(e, unit, i());}}}
+                  onDragOver={e => e.preventDefault()}
                 >
-                  <Show when={(apm() || tick()) && unit.total > 0} fallback={<span></span>}>
+                  <Show when={troops() && (apm() || tick()) && unit.total > 0} fallback={<span></span>}>
                     <div
-                      class={`${styles.troop}`}
-                      onClick={(e) => { e.stopPropagation(); musterTroops(unit, i()) }}
+                      class={`${styles.troop} ${selected()?.[0] === i() ? 'selected' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); setSelected([i(), unit]) }}
+                      onMousedown={(e) => { e.stopPropagation(); musterTroops(unit, i()) }}
                       draggable='true'
-                      onDragStart={e => musterTroops(unit, i())}
-                      onContextMenu={(e) => activateAbility(e, unit, i())}
+                      onContextMenu={e => {e.preventDefault(); setActive(prev => prev.concat({id: i(), ...unit}))}}
                     >
                       <span>{Math.round(troops()[i()].total)}</span>
                       <span class={styles[units[unit.type].css]}>
                         {units[unit.type].icon}
                       </span>
-                      {/* <AbilityMenu abilities={units[unit.type].abilities} /> */}
                     </div>
+                    <Show when={active()?.id === i()} fallback={<span></span>}>
+                      <AbilityMenu abilities={units[unit.type].abilities} onContextMenu={(e) => {e.preventDefault() ;activateAbility(e, unit, i())}} />
+                    </Show>
                   </Show>
                   <Show when={typeof props.resources?.[i()] === "string"} fallback={null}>
                     <span class={`${styles.feature} ${props.resources[i()]}`}>
@@ -271,8 +277,8 @@ export const World = (props) => {
         </section>
       </div>
       <div onMouseEnter={useInspect}>
-        <Show when={muster().some(m => m)} fallback={<UnitCard empty={true}></UnitCard>}>
-          <UnitCard mustered={muster()} />
+        <Show when={selected()} fallback={<UnitCard empty={true}></UnitCard>}>
+          <UnitCard selected={selected()} />
         </Show>
       </div>
     </div>

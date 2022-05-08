@@ -3,7 +3,7 @@ import { units } from '../data/pieces'
 import styles from './style.module.css'
 
 export const UnitCard = (props) => {
-
+      console.log(props.selected)
     if(props.empty) {
       return (
         <section class={styles.unitcard}>
@@ -11,10 +11,10 @@ export const UnitCard = (props) => {
         </section>
       )
     }
-    const unit = units[props.mustered[1]?.type]
-    const [total, setTotal] = createSignal(props.mustered[1]?.total)
+    const unit = units[props.selected[1]?.type]
+    const [total, setTotal] = createSignal(props.selected[1]?.total)
     createEffect(() => {
-      setTotal(props.mustered[1]?.total)
+      setTotal(props.selected[1]?.total)
     })
 
 
@@ -22,7 +22,7 @@ export const UnitCard = (props) => {
       <section class={`${styles.unitcard} ${styles.mustered}`}>
         <h3 data-capital>{unit.name}</h3> 
         <span>
-          <code>{Math.round(total())} troops @ ({props.mustered[0] % 8},{ Math.floor(props.mustered[0] / 8)})</code>
+          <code>{Math.round(total())} troops @ ({props.selected[0] % 8},{ Math.floor(props.selected[0] / 8)})</code>
         </span>
         <Show when={unit.abilities.length} fallback={null}>
           <h4>Abilities: </h4>

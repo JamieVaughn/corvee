@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import { render, fireEvent } from 'solid-testing-library';
 
-import { TodoList } from './todo-list';
+import { TodoList } from './component-references/todo-list';
 
 describe('<TodoList />', () => {
   test('it will render an text input and a button', () => {

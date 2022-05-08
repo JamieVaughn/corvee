@@ -3,19 +3,23 @@ lockfileVersion: 5.3
 specifiers:
   '@testing-library/jest-dom': ^5.16.3
   jsdom: ^19.0.0
+  solid-app-router: ^0.3.2
   solid-js: ^1.3.13
   solid-testing-library: ^0.3.0
+  typescript: ^4.6.4
   vite: ^2.8.6
   vite-plugin-solid: ^2.2.6
   vitest: ^0.7.11
 
 dependencies:
+  solid-app-router: 0.3.2_solid-js@1.3.13
   solid-js: 1.3.13
 
 devDependencies:
   '@testing-library/jest-dom': 5.16.3
   jsdom: 19.0.0
   solid-testing-library: 0.3.0_solid-js@1.3.13
+  typescript: 4.6.4
   vite: 2.8.6
   vite-plugin-solid: 2.2.6
   vitest: 0.7.11_jsdom@19.0.0
@@ -1413,6 +1417,14 @@ packages:
     hasBin: true
     dev: true
 
+  /solid-app-router/0.3.2_solid-js@1.3.13:
+    resolution: {integrity: sha512-zh6Ui87xy23JUxrH0z1xAROJPpiuxa3JRx9jP2qqjr07q2EKQOjn9BrmTFvQd/azQWzLjSMU+hN2fy6kLh5Bdw==}
+    peerDependencies:
+      solid-js: ^1.3.5
+    dependencies:
+      solid-js: 1.3.13
+    dev: false
+
   /solid-js/1.3.13:
     resolution: {integrity: sha512-1EBEIW9u2yqT5QNjFdvz/tMAoKsDdaRA2Jbgykd2Dt13Ia0D4mV+BFvPkOaseSyu7DsMKS23+ZZofV8BVKmpuQ==}
 
@@ -1536,6 +1548,12 @@ packages:
   /type-detect/4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
     engines: {node: '>=4'}
+    dev: true
+
+  /typescript/4.6.4:
+    resolution: {integrity: sha512-9ia/jWHIEbo49HfjrLGfKbZSuWo9iTMwXO+Ca3pRsSpbsMbc7/IU8NKdCZVRRBafVPGnoJeFL76ZOAA84I9fEg==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
     dev: true
 
   /universalify/0.1.2:

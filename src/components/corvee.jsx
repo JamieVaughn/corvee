@@ -103,12 +103,21 @@ export function Corvee() {
     setCount(prev => playing() ? prev + 1 : prev)
   }, 1000)
 
+  const getMinutes = () => {
+    const mins = count()/60
+    return mins > 1 ? mins.toFixed(0) : '00'
+  }
+  const getSeconds = () => {
+    const sec = count()%60 
+    return sec > 9 ? sec : '0'+String(sec)
+  }
+
   return (
     <>
       <section class={styles.kings}>
         <h1 class={styles.title}>King's Corvée</h1>
         <h6 class='center'>A Cooldown-based Strategy game.</h6>
-        <div class='flex'><span>{count()} seconds</span><button onClick={() => setPlaying(p => !p)}>{playing() ? 'Pause' : 'Resume'}</button></div>
+        <div class='flex'><span>{getMinutes()}:{getSeconds()}</span><button onClick={() => setPlaying(p => !p)}>{playing() ? 'Pause' : 'Resume'}</button></div>
         <Difficulty setDimension={setDimension} />
         <span><TechTree /></span>
       </section>

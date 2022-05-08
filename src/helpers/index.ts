@@ -1,3 +1,5 @@
+import { Accessor } from "solid-js";
+
 export function isEdge(musterId, adjId, dimension) {
   return (
     (adjId % dimension === 0 && (musterId + 1) % dimension === 0) ||
@@ -23,4 +25,8 @@ export function draw(now, {then = now, delta = 0, drawCallback, fps = 30}) {
         // Frame Animation side effects here ...
         drawCallback()
     }
+}
+
+export function handleFallback<T>(item: T, index: Accessor<number>): Element {
+  throw new Error('Function not implemented.')
 }

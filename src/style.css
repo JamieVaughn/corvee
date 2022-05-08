@@ -85,4 +85,6 @@ details {
 	text-align: center;
 }
 
-
+.selected {
+	border: 2px dashed dodgerblue;
+}
