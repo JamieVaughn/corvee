@@ -1,4 +1,5 @@
 import { Accessor } from "solid-js";
+import { units } from '../data/pieces'
 
 export function isEdge(musterId, adjId, dimension) {
   return (
@@ -29,4 +30,24 @@ export function draw(now, {then = now, delta = 0, drawCallback, fps = 30}) {
 
 export function handleFallback<T>(item: T, index: Accessor<number>): Element {
   throw new Error('Function not implemented.')
+}
+
+export const canReach = ([pos, unit], dimension = 8) => {
+  let row = Math.ceil(pos / dimension);
+  let col = pos % dimension;
+  const speed = units[unit.type]?.speed
+  const iter = Array.from({length: speed}).map((_, i) => i )
+  const west = iter.map(w => pos + w)
+  const east = iter.map(e => pos - e)
+  const north = iter.map(n => pos - n*dimension)
+  const south = iter.map(s => pos + s*dimension)
+  const se = iter.map(se => pos + se*dimension + 1)
+
+  const reach = [...west, ...east, ...north, ...south, ...se].filter(p => p < (dimension ** 2) - 1 && p >= 0)
+  console.log('reach', pos, reach)
+  let coef = row % 2 === 0 ? -1 * speed : 1 * speed;
+  if (row % 2 === 0 && col === 0) coef = 1 * speed;
+  if (row % 2 === 1 && col === 0) coef = 0;
+  // return reach
+  return [-dimension + coef, -dimension, -1, 1, dimension, dimension + coef];
 }

@@ -4,7 +4,7 @@ import { units } from "../data/pieces";
 
 import { AbilityMenu } from "./abilityMenu";
 import { UnitCard } from './unitcard'
-import { draw, isEdge, growthFactor } from "../helpers";
+import { canReach, draw, isEdge, growthFactor } from "../helpers";
 
 const decay = false;
 // type Props = delay: number, dimension: number, resources: Array<{}>, playing: boolean
@@ -16,7 +16,6 @@ export const World = (props) => {
   const [forts, setForts] = createSignal([0]);
   const [muster, setMuster] = createSignal([null, null]); // [index, total]
   const [selected, setSelected] = createSignal(null)
-  const [hasSelection, setHasSelection] = createSignal(false)
   const [active, setActive] = createSignal([]); // Array<{id, type, ability, total?}>
   const [troops, setTroops] = createSignal(
     Array(props.dimension ** 2)
@@ -30,7 +29,7 @@ export const World = (props) => {
 
   createEffect(() => {
     troops()
-    if(tick() % 30) return
+    if(tick() % 5) return
     console.log(`time: ${tick()}`)
     console.log(`Mustered troops: `, muster())
     console.log(`Activated troops: `, active())
@@ -79,28 +78,21 @@ export const World = (props) => {
   createEffect(() => {
     if(inspect()) {
       console.log(`World Clock: ${props.playing ? tick() : `paused - ${tick()}`} seconds`)
-      console.log("active", active(), troops());
-      console.log('resources', props.resources)
-      console.log(`board: ${props.dimension}x${props.dimension} => ${troops().length}`)
+      console.log("active", active(), 'muster', muster());
+      // console.log('resources', props.resources)
+      // console.log(`board: ${props.dimension}x${props.dimension} => ${troops().length}`)
+      console.log(`selected: `, selected())
     }
   })
-
-  const canReach = (pos) => {
-    let row = Math.ceil(pos / 8);
-    let col = pos % 8;
-    let coef = row % 2 === 0 ? -1 : 1;
-    if (row % 2 === 0 && col === 0) coef = 1;
-    if (row % 2 === 1 && col === 0) coef = 0;
-    return [-props.dimension + coef, -props.dimension, -1, 1, props.dimension, props.dimension + coef];
-  };
   
-  const deployMusteredTroops = (_e, unit, target) => {
+  const deployMusteredTroops = (e, unit, target) => {
     // e.preventDefault();
-    setHasSelection(false);
+    // console.log('sel', target, unit, muster()[1])
+    setSelected([target, muster()[1]]);
     // console.log('Muster', ...muster())
     // console.log('Target', target, unit)
     const pos = muster()[0];
-    console.log('deploy', _e, target)
+    console.log('deploy', e, target)
     if (!(typeof target === "number") || !(typeof pos === "number")) return;
     if (isEdge(pos, target, props.dimension)) return;
     if (
@@ -122,7 +114,7 @@ export const World = (props) => {
     // console.log('edge', isEdge(pos, target, props.dimension), 'same', target === pos)
 
     if (
-      canReach(pos)
+      canReach(muster())
         .reduce((acc, cur) => {
           if (isEdge(muster()[0], target, props.dimension)) return acc;
           return [...acc, muster()[0] + cur];
@@ -144,7 +136,7 @@ export const World = (props) => {
       );
       setMuster([null, null]);
     }
-    activateAbility(_e, unit, target)
+    activateAbility(e, unit, target)
   };
 
   const musterTroops = (unit, id) => {
@@ -152,33 +144,35 @@ export const World = (props) => {
     if (active().find((a) => a.id === id)) return;
     if (typeof id === "number" && unit.total > 0) {
       setMuster([id, unit]);
-      setHasSelection(true)
+      setSelected([id, unit])
     }
   };
+
+  const applyCooldown = (id, unit, domref) => {
+    setActive(prev => {
+      return active().concat({ id, ...unit })
+    });
+    let cd = units[unit.type].cooldown
+    domref.style.setProperty("animation-duration", cd + "s");
+    let timeout = setTimeout(() => {
+      setActive((prev) => prev.filter((a) => a.id !== id));
+      clearTimeout(timeout)
+    }, cd * 1000);
+  }
+
   const activateAbility = (e, unit, id) => {
     e.preventDefault();
-    setHasSelection(false)
+    setSelected([id, unit])
     console.log('activate', e.currentTarget, unit, id, units[unit.type].abilities);
     if (active().find((a) => a.id === id)) return;
     let troop = e.target.children.length ? e.target.children[0] : e.currentTarget
-    if (typeof id === "number" && unit.total > 0) {
-      setActive(prev => {
-        return active().concat({ id, type: unit.type, total: unit.total, abilities: units[unit.type].abilities })
-      });
-      let cd = Math.random() > 0.5 ? 6 : 1;
-      troop.style.setProperty("animation-duration", cd + "s");
-      troop.classList.toggle("oncooldown");
-      setTimeout(() => {
-        setActive((prev) => prev.filter((a) => a.id !== id));
-        troop.classList.remove("oncooldown");
-      }, cd * 1000);
-    }
+    if (typeof id === "number" && unit.total > 0) applyCooldown(id, unit, troop)
   };
   const deploymentZones = (target) => {
     if (muster()[0] === null) return "";
     if (muster()[0] === target) return styles.muster;
     if (
-      canReach(muster()[0])
+      canReach(muster())
         .reduce((acc, cur) => {
           if (isEdge(muster()[0], target, props.dimension)) return acc;
           return [...acc, muster()[0] + cur];
@@ -192,7 +186,7 @@ export const World = (props) => {
     if (muster()[0] === null) return "";
     if (muster()[0] === target) return styles.muster;
     if (
-      canReach(muster()[0])
+      canReach(muster())
         .reduce((acc, cur) => {
           if (isEdge(muster()[0], target, props.dimension)) return acc;
           return [...acc, muster()[0] + cur];
@@ -207,11 +201,12 @@ export const World = (props) => {
   const delegateAPM = e => {
     e.preventDefault()
     setApm(apm => apm + 1)
+    setSelected(null)
   }
 
   const handleCellClick = (e, unit, i) => {
-    console.log( {i: i(), muster: muster()[0], reach: canReach(muster()[0])})
-    if(troops()[i()]?.total === 0 && !canReach(muster()[0]).includes(i())) {
+    console.log( {i: i(), muster: muster()[0], reach: canReach(muster())})
+    if(troops()[i()]?.total === 0 && !canReach(muster()).includes(i())) {
       setMuster([null, null])
       return
     }
@@ -246,10 +241,10 @@ export const World = (props) => {
                   // onDragEnd={(e) => {console.log('endcap', e); deployMusteredTroops(e, unit, i()) }}
                   onDrop={e => {if(deploymentZones(i())) {deployMusteredTroops(e, unit, i());}}}
                   onDragOver={e => e.preventDefault()}
-                >
+                ><span style={{opacity: 0.5}}>{i()}</span>
                   <Show when={troops() && (apm() || tick()) && unit.total > 0} fallback={<span></span>}>
                     <div
-                      class={`${styles.troop} ${selected()?.[0] === i() ? 'selected' : ''}`}
+                      class={`${styles.troop} ${selected()?.[0] === i() ? 'selected' : ''} ${active().find(a => a.id === i()) ? 'oncooldown' : ''}`}
                       onClick={(e) => { e.stopPropagation(); setSelected([i(), unit]) }}
                       onMousedown={(e) => { e.stopPropagation(); musterTroops(unit, i()) }}
                       draggable='true'
@@ -261,7 +256,7 @@ export const World = (props) => {
                       </span>
                     </div>
                     <Show when={active()?.id === i()} fallback={<span></span>}>
-                      <AbilityMenu abilities={units[unit.type].abilities} onContextMenu={(e) => {e.preventDefault() ;activateAbility(e, unit, i())}} />
+                      <AbilityMenu abilities={units[unit.type].abilities} onContextMenu={(e) => {e.preventDefault(); activateAbility(e, unit, i())}} />
                     </Show>
                   </Show>
                   <Show when={typeof props.resources?.[i()] === "string"} fallback={null}>
@@ -277,7 +272,7 @@ export const World = (props) => {
         </section>
       </div>
       <div onMouseEnter={useInspect}>
-        <Show when={selected()} fallback={<UnitCard empty={true}></UnitCard>}>
+        <Show when={troops() && selected()} fallback={<UnitCard empty={true}></UnitCard>}>
           <UnitCard selected={selected()} />
         </Show>
       </div>

@@ -51,6 +51,7 @@ export const units = {
     name: "conscript",
     icon: "🗡️",
     css: "dagger",
+    speed: 1,
     defense: 1,
     abilities: ["laborer", "miner", "soldier"],
   }),
